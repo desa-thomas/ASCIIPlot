@@ -54,11 +54,34 @@ Constants
 */
 
 //Rate at which to change plane scale when zooming
-#define ZOOMRATE 5
+#define ZOOMRATE_LOW_LOW 0.01
+#define ZOOMRATE_LOW 0.1
+#define ZOOMRATE_MID 1
+
+#define ZOOMRATE_HIGH 2
+
 //Rate at which to move origin 
 #define MOVESPEED 1
 //Default scale of graphs
-#define DEFAULT_SCALE 5
+#define DEFAULT_SCALE 1
+
+#define XPADDING 5
+#define YPADDING 10
+
+//Transform screen coordinates to plane coordinates
+//Note for the y-axis the distance formula is flipped, this is because
+//y coordinates (in ncurses) are calculated by # of rows from top left
+#define planeY(p, screeny) (p->originY - screenY)*p->scale
+#define planeX(p, screenX) (screenX - p->originX)*p->scale
+
+//Transform plane X and Y back to scren coordinates
+#define screenY(p, planeY) p->originY - (planeY/p->scale)
+#define screenX(p, planeX) planeX/p->scale + p->originX
+
+/* To apply function: f(x) you must:
+1. transform screen coordinates to plane coordinates
+2. evaulate function plane coordinates
+3. transform plane coordinates back to their mapped screen coordinates*/
 
 //get viewbox values based on center and size of box
 Viewbox* getViewbox(int centerX, int centerY, int width, int height);
@@ -103,3 +126,14 @@ void updateCenter(Plane*p);
 Update values of viewbox struct, called by updateCenter
 */
 void updateViewbox(Plane*p); 
+
+
+/*
+Test function, draws a parabola y=x^2
+*/
+void draw_parabola(Plane* p);
+
+/*
+DEBUGGING FUNCTION
+*/
+void write_log(const char* msg, ...);

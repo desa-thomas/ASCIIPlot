@@ -9,13 +9,16 @@ Desmos in your terminal, you absolutely don't need it
 int main() {
 
     /* Initialize ncurses */
-
     initscr();              //init screen
     raw();                  //enable raw mode (how to handle ctrl c)
     noecho();               //disable echoing
     keypad(stdscr, true);   //enable keypad
     curs_set(0);            //make cursor invisible
+    start_color();          //enable colors
     //nodelay(stdscr, true); //make getch non-blocking
+
+    /* Initialize colors */
+    init_pair(1, COLOR_RED, COLOR_BLACK);
 
     /* Initalize cartesian plane */
     Plane *p = init_plane(); 
@@ -25,11 +28,18 @@ int main() {
 
     while (true)
     {
-        mvprintw(0, 0, "press esc then enter function: ");
+        /*TODO*/
+        //parse function input (handle formatting, use library or create parser)
+        //graph function
+        
+        mvprintw(YPADDING/4, XPADDING/2, "1: ");
 
+        clear(); 
+        mvprintw(0, max_x-XPADDING/2 -10, "SCALE: %f", p->scale); 
         /* Draw viewbox and plane*/
         draw_box(p); 
         draw_plane(p);
+        draw_parabola(p); 
         refresh();
 
         /* If ctrl-c is pressed, quit*/
@@ -41,6 +51,7 @@ int main() {
         /* If arrow keys are pressed, move view*/
         else 
         {
+            /* Arrow keys for moving around graph*/
             if (ch == KEY_UP)
                 move_origin(p, DOWN); 
             else if (ch == KEY_DOWN)
@@ -49,7 +60,16 @@ int main() {
                 move_origin(p, RIGHT); 
             else if (ch == KEY_RIGHT) 
                 move_origin(p, LEFT); 
-            clear(); 
+
+            /* Page up and Page down for zooming*/
+            else if (ch == KEY_NPAGE)
+                zoom(p, ZOOMOUT); 
+                
+            else if (ch == KEY_PPAGE)
+                zoom(p, ZOOMIN); 
+                
+
+            mvprintw(0,0,"%c", ch); 
         }
 
         /* If screen size changes*/

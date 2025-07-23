@@ -3,8 +3,13 @@ Functions for cartesian plane
 */
 
 #include "cartesian-plane.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include <math.h>
+#include <stdarg.h> 
+
+#define EPSILON 1e-6
 
 //create viewbox of plane based on origin and size
 Viewbox* getViewbox(int centerX, int centerY, int width, int height)
@@ -37,8 +42,8 @@ Plane* init_plane()
     p->originX = max_x/2;
     p->originY = max_y/2; 
     //set width and height based on size of screen
-    p->width = max_x - 20;
-    p->height = max_y -10;    
+    p->width = max_x - XPADDING;
+    p->height = max_y - YPADDING;    
 
     p->viewbox = getViewbox(p->originX, p->originY, p->width, p->height); 
 
@@ -129,14 +134,38 @@ void zoom (Plane* p, Zoom zoom)
     {   
         //decrease scale when zooming in
         case ZOOMIN: 
-            if((p->scale - ZOOMRATE) < 1) p->scale = 1; 
-            p->scale -= ZOOMRATE; 
-            break;    
+            if (p->scale > 10)
+                p->scale -= ZOOMRATE_HIGH; 
+
+            else if (p->scale > ZOOMRATE_MID)
+                p->scale -= ZOOMRATE_MID;
+          
+            else if (p->scale > ZOOMRATE_LOW)
+                p->scale -= ZOOMRATE_LOW; 
+
+            else if (p->scale > ZOOMRATE_LOW_LOW){
+                //Bug fix: 0.01 > 0.01 would be wrongly evaluated, add tolerance
+                if(fabs(p->scale -ZOOMRATE_LOW_LOW) > EPSILON){
+                    p->scale -= ZOOMRATE_LOW_LOW; }
+                }
+                
+          
+            break; 
 
         //increase scale when zooming out
         case ZOOMOUT:
-            p->scale += ZOOMRATE; 
-            break;
+            if (p->scale <= ZOOMRATE_LOW)
+                p->scale += ZOOMRATE_LOW_LOW; 
+
+            else if(p->scale <= ZOOMRATE_MID)
+                p->scale += ZOOMRATE_LOW; 
+
+            else if (p->scale <= ZOOMRATE_HIGH)
+                p->scale += ZOOMRATE_MID;
+
+            else
+                p->scale += ZOOMRATE_HIGH; 
+            break; 
     }
 }
 
@@ -147,8 +176,8 @@ void updateCenter(Plane *p)
     int centerY = max_y /2;
     int centerX = max_x /2; 
 
-    p->width = max_x - 20;
-    p->height = max_y -10;
+    p->width = max_x - XPADDING;
+    p->height = max_y - YPADDING;
 
     /* Update origin based on the change in center*/
     int dx = centerX - p->centerX;
@@ -175,4 +204,69 @@ void updateViewbox(Plane *p)
     viewbox->xStart = xStart; 
     viewbox->yStart = yStart; 
     viewbox->yEnd = yEnd; 
+}
+
+/*
+TESTING FUNCTION AND MACROS FOR DRAWING A PARABOLA
+*/
+#define parabola_screenY(screenX, p) screenY(p, pow(planeX(p, screenX), 2))
+#define parabola_screenX_plus(screenY, p) screenX(p, sqrt(planeY(p,screenY)))
+#define parabola_screenX_minus(screenY, p) screenX(p, -sqrt(planeY(p, screenY)))
+void draw_parabola(Plane *p)
+{
+    //draw parabola red
+    attron(COLOR_PAIR(1)); 
+    for(int x = p->viewbox->xStart; x < p->viewbox->xEnd; x++)
+    {
+        int screenY = parabola_screenY(x, p);
+
+        //If transformed y point lies in viewbox
+        if (screenY > p->viewbox->yStart && screenY < p->viewbox->yEnd)
+        {
+            mvaddch(screenY, x, '*' |A_BOLD); 
+        }
+
+        //fill curve between exact y points
+        int nextScreenY = parabola_screenY(x+1, p);
+        for (int y = screenY; y< nextScreenY; y++)
+        {
+            if(y > p-> viewbox->yStart && y < p->viewbox->yEnd)
+            {
+            int inbetweenX_plus, inbetweenX_minus;
+            inbetweenX_plus = round(parabola_screenX_plus(y, p));
+            inbetweenX_minus = round(parabola_screenX_minus(y, p)); 
+
+            mvaddch(y, inbetweenX_plus, '*' |A_BOLD); 
+            /* TODO add and extra '*' based on derivative values 
+            i.e., to the left if derivative is neg, right if positive
+            and only if it is a certain steepness ... i.e., < 1*/
+            mvaddch(y, inbetweenX_plus +1 , '*'|A_BOLD);
+            mvaddch(y, inbetweenX_minus-1, '*'|A_BOLD);
+            mvaddch(y, inbetweenX_minus, '*'|A_BOLD); 
+
+            }
+        }
+
+    }
+    attroff(COLOR_PAIR(1));
+}
+
+void write_log (const char* msg, ...)
+{
+    va_list args; 
+    va_start (args, msg); 
+
+    FILE * file;
+    file = fopen("out.log", "w"); 
+
+    if (file != NULL)
+    {
+        vfprintf(file, msg, args);
+        fprintf(file, "\n");
+        fclose(file);
+    }
+    else 
+    {
+        perror("Failed to open log file"); 
+    }
 }
