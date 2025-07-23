@@ -2,7 +2,8 @@ CC = gcc
 ODIR = objs
 SDIR = src
 
-LIBS = -lncurses
+LIBS = -lncurses -lm
+#debugging flags
 CFLAGS = -g -Wall -Wextra -pedantic -MMD -MP
 
 SRCS = $(wildcard $(SDIR)/*.c)
