@@ -3,5 +3,5 @@
 ░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀░░░▀▀▀░▀▀▀░░▀░
 
 ```text
-Graphing calculator for your terminal. Very exciting
+Graphing calculator for your terminal. Very exciting.
 ```
