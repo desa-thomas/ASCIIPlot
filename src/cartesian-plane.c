@@ -23,22 +23,26 @@ Viewbox* getViewbox(int centerX, int centerY, int width, int height)
     return viewbox; 
 }
 
-Plane* init_plane(int width, int height, float scale, int originX, int originY)
+
+Plane* init_plane()
 {
     Plane* p = malloc(sizeof(Plane)); 
     if (!p) return NULL; 
+    
+    //Set centerX and centerY based on size of screen
+    int max_y, max_x;
+    getmaxyx(stdscr, max_y, max_x);
+    p->centerX = max_x/2;
+    p->centerY = max_y/2;
+    p->originX = max_x/2;
+    p->originY = max_y/2; 
+    //set width and height based on size of screen
+    p->width = max_x - 20;
+    p->height = max_y -10;    
 
-    p->viewbox = getViewbox(originX, originY, width, height); 
+    p->viewbox = getViewbox(p->originX, p->originY, p->width, p->height); 
 
-    p->width = width; 
-    p->height = height;
-    p->scale = scale; 
-
-    //Origin and center of box are initialized to the same value
-    p->originX = originX; 
-    p->originY = originY; 
-    p->centerX = originX; 
-    p->centerY = originY;
+    p->scale = DEFAULT_SCALE;
 
     return p;
 }
@@ -134,4 +138,41 @@ void zoom (Plane* p, Zoom zoom)
             p->scale += ZOOMRATE; 
             break;
     }
+}
+
+void updateCenter(Plane *p)
+{
+    int max_y, max_x;
+    getmaxyx(stdscr, max_y, max_x);
+    int centerY = max_y /2;
+    int centerX = max_x /2; 
+
+    p->width = max_x - 20;
+    p->height = max_y -10;
+
+    /* Update origin based on the change in center*/
+    int dx = centerX - p->centerX;
+    int dy = centerY -p->centerY;
+    p->originX += dx; 
+    p->originY += dy;
+
+    p->centerX = centerX;
+    p->centerY = centerY;
+
+    //update viewbox size
+    updateViewbox(p); 
+}
+
+void updateViewbox(Plane *p)
+{
+    int xStart = p->centerX - p->width/2; 
+    int xEnd = p->centerX + p->width/2; 
+    int yStart = p->centerY - p->height/2; 
+    int yEnd = p->centerY + p->height/2; 
+
+    Viewbox* viewbox = p->viewbox; 
+    viewbox->xEnd = xEnd; 
+    viewbox->xStart = xStart; 
+    viewbox->yStart = yStart; 
+    viewbox->yEnd = yEnd; 
 }

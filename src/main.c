@@ -18,20 +18,27 @@ int main() {
     //nodelay(stdscr, true); //make getch non-blocking
 
     /* Initalize cartesian plane */
-    Plane *p = init_plane(100, 35, 5.0, 75, 20); 
-    int ch;
+    Plane *p = init_plane(); 
+
+    int ch, max_x, max_y, prev_max_x, prev_max_y;
+    getmaxyx(stdscr, max_y, max_x);
+
     while (true)
     {
-        mvprintw(0, 0, "press esc then enter function: "); 
+        mvprintw(0, 0, "press esc then enter function: ");
+
+        /* Draw viewbox and plane*/
         draw_box(p); 
         draw_plane(p);
         refresh();
 
+        /* If ctrl-c is pressed, quit*/
         ch = getch(); 
         if (ch == 3)
         {
             break;
         }
+        /* If arrow keys are pressed, move view*/
         else 
         {
             if (ch == KEY_UP)
@@ -44,7 +51,12 @@ int main() {
                 move_origin(p, LEFT); 
             clear(); 
         }
-        
+
+        /* If screen size changes*/
+        prev_max_x = max_x; 
+        prev_max_y = max_y; 
+        getmaxyx(stdscr, max_y, max_x);
+        if (prev_max_x != max_x || prev_max_y != max_y) updateCenter(p); 
     }
 
     endwin();

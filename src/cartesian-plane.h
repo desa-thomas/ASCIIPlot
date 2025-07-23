@@ -53,6 +53,7 @@ Constants
 #define ZOOMRATE 5
 //Rate at which to move origin 
 #define MOVESPEED 1
+#define DEFAULT_SCALE 5
 
 Viewbox* getViewbox(int centerX, int centerY, int width, int height);
 /*
@@ -67,7 +68,7 @@ Create Cartesian plane
     originX - xcoordinate of origin
     originY - ycoordinate of origin
 */
-Plane* init_plane(int width, int height, float scale, int originX, int originY); 
+Plane* init_plane(); 
 
 /*
 free up pointers
@@ -91,3 +92,8 @@ void move_origin(Plane* p, Direction dir);
 Zoom into graph (i.e., increase or decrease scale by a rate of ZOOMRATE)
 */
 void zoom(Plane* p, Zoom zoom);
+
+/*
+*/
+void updateCenter(Plane*p);
+void updateViewbox(Plane*p); 
