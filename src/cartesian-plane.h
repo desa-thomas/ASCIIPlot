@@ -1,7 +1,26 @@
-typedef struct{
-    //size of the width and height on screen
+/*
+Cartesian plane struct prototype
+*/
+
+//Viewbox of plane
+typedef struct
+{
+    int xStart;
+    int xEnd; 
+    int yStart; 
+    int yEnd; 
+} Viewbox; 
+
+typedef struct
+{
+    //size of the width and height of box on screen
     int width;
     int height;
+
+    //center of box on screen
+    int centerX;
+    int centerY;
+    Viewbox* viewbox; 
 
     //how many units does moving 1 dash from origin represent
     float scale;
@@ -11,6 +30,34 @@ typedef struct{
     int originY;
 
 }Plane; 
+
+typedef enum 
+{
+    ZOOMIN,
+    ZOOMOUT
+} Zoom; 
+
+typedef enum 
+{
+    UP, 
+    DOWN, 
+    LEFT, 
+    RIGHT
+}Direction; 
+
+/*
+Constants
+*/
+
+//Rate at which to change plane scale when zooming
+#define ZOOMRATE 5
+//Rate at which to move origin 
+#define MOVESPEED 1
+
+Viewbox* getViewbox(int centerX, int centerY, int width, int height);
+/*
+Cartesian plane methods
+*/
 
 /*
 Create Cartesian plane
@@ -25,9 +72,22 @@ Plane* init_plane(int width, int height, float scale, int originX, int originY);
 /*
 free up pointers
 */
-void free_plane(Plane* plane);
+void free_plane(Plane* p);
 
+/*
+Draw viewbox
+*/
+void draw_box(Plane* p); 
 /*
 Draw plane using ncurses
 */
 void draw_plane(Plane* p); 
+
+/*
+Move origin in direction by speed of MOVESPEED 
+*/
+void move_origin(Plane* p, Direction dir); 
+/*
+Zoom into graph (i.e., increase or decrease scale by a rate of ZOOMRATE)
+*/
+void zoom(Plane* p, Zoom zoom);

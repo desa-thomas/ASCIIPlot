@@ -18,12 +18,14 @@ int main() {
     //nodelay(stdscr, true); //make getch non-blocking
 
     /* Initalize cartesian plane */
-    Plane *p = init_plane(100, 30, 5.0, 75, 20); 
-
+    Plane *p = init_plane(100, 35, 5.0, 75, 20); 
     int ch;
     while (true)
     {
+        mvprintw(0, 0, "press esc then enter function: "); 
+        draw_box(p); 
         draw_plane(p);
+        refresh();
 
         ch = getch(); 
         if (ch == 3)
@@ -32,7 +34,15 @@ int main() {
         }
         else 
         {
-            //pass
+            if (ch == KEY_UP)
+                move_origin(p, DOWN); 
+            else if (ch == KEY_DOWN)
+                move_origin(p, UP); 
+            else if (ch == KEY_LEFT)
+                move_origin(p, RIGHT); 
+            else if (ch == KEY_RIGHT) 
+                move_origin(p, LEFT); 
+            clear(); 
         }
         
     }
