@@ -11,24 +11,6 @@ Functions for cartesian plane
 
 #define EPSILON 1e-6
 
-//create viewbox of plane based on origin and size
-Viewbox* getViewbox(int centerX, int centerY, int width, int height)
-{
-    Viewbox* viewbox = malloc(sizeof(Viewbox));
-    int xStart = centerX - width/2; 
-    int xEnd = centerX + width/2; 
-    int yStart = centerY - height/2; 
-    int yEnd = centerY + height/2; 
-
-    viewbox->xEnd = xEnd; 
-    viewbox->xStart = xStart; 
-    viewbox->yStart = yStart; 
-    viewbox->yEnd = yEnd; 
-
-    return viewbox; 
-}
-
-
 Plane* init_plane()
 {
     Plane* p = malloc(sizeof(Plane)); 
@@ -37,71 +19,64 @@ Plane* init_plane()
     //Set centerX and centerY based on size of screen
     int max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
-    p->centerX = max_x/2;
-    p->centerY = max_y/2;
-    p->originX = max_x/2;
-    p->originY = max_y/2; 
-    //set width and height based on size of screen
-    p->width = max_x - XPADDING;
-    p->height = max_y - YPADDING;    
 
-    p->viewbox = getViewbox(p->originX, p->originY, p->width, p->height); 
+    //set width and height based on size of screen
+    p->width = max_x - XPADDING*2;
+    p->height = max_y - YPADDING-2;    
+
+    //center and origin are center of window
+    p->originX = p->width/2;
+    p->originY = p->height/2;
+    p->centerX = p->width/2;
+    p->centerY = p->height/2; 
 
     p->scale = DEFAULT_SCALE;
-
+    
+    //init window
+    p->win = init_window(p); 
     return p;
+}
+
+WINDOW* init_window(Plane* p)
+{
+    WINDOW* win;
+    win = newwin(p->height+1, p->width+1, YPADDING, XPADDING); 
+    box(win, 0, 0); 
+    return win; 
+}
+
+void clear_plane(Plane* p)
+{
+    wclear(p->win); 
 }
 
 void free_plane(Plane*p)
 {
-    free(p->viewbox); 
-    free(p); 
-}
-
-void draw_box(Plane* p)
-{
-    Viewbox* box = p->viewbox; 
-
-    for (int x = box->xStart; x <= box->xEnd; x++)
-    {
-        mvaddch(box->yStart, x, '-' |A_BOLD); 
-        mvaddch(box->yEnd, x, '-'|A_BOLD); 
-    }
-
-    for (int y = box->yStart; y <= box->yEnd; y++)
-    {
-        mvaddch(y, box->xStart,'|' | A_BOLD); 
-        mvaddch(y, box->xEnd, '|' | A_BOLD); 
-    }
-
-    
+    free(p->win); 
+    free(p);    
 }
 
 void draw_plane(Plane*p)
 {
-    int xStart = p->viewbox->xStart;
-    int xEnd = p->viewbox->xEnd; 
-    int yStart = p->viewbox->yStart; 
-    int yEnd = p->viewbox->yEnd; 
-
-    //only draw axes that are in viewbox
-
-    //If y axis is in view box (i.e., originX is there) draw it
-    if(p->originX > xStart && p->originX < xEnd)
+    box(p->win, 0, 0); 
+    if(p->originX > 1 && p->originX < p->width)
     {  
-        for (int y = yStart +1 ; y < yEnd; y++)
+        for (int y = 1; y < p->height; y++)
         {
-            if (y == p->originY) mvaddch(y, p->originX, '+');
-            else mvaddch(y, p->originX, '|');
+            if (y == p->originY) 
+                mvwaddch(p->win, y, p->originX, '+');
+
+            else mvwaddch(p->win, y, p->originX, '|');
         }
         
     }
 
-    if(p->originY > yStart && p->originY < yEnd)
+    if(p->originY > 1 && p->originY < p->height)
     {
-        for(int x = xStart+1; x < xEnd; x++)
+        for(int x = 1; x < p->width; x++)
         {
-            if(x != p->originX) mvaddch(p->originY, x, '-'); 
+            if(x != p->originX) 
+                mvwaddch(p->win, p->originY, x, '-'); 
         }
     }
 }
@@ -171,13 +146,16 @@ void zoom (Plane* p, Zoom zoom)
 
 void updateCenter(Plane *p)
 {
+    
     int max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
-    int centerY = max_y /2;
-    int centerX = max_x /2; 
 
-    p->width = max_x - XPADDING;
-    p->height = max_y - YPADDING;
+    //set width and height based on size of screen
+    p->width = max_x - XPADDING*2;
+    p->height = max_y - YPADDING-2;    
+
+    int centerX = p->width/2;
+    int centerY = p->height/2; 
 
     /* Update origin based on the change in center*/
     int dx = centerX - p->centerX;
@@ -188,22 +166,10 @@ void updateCenter(Plane *p)
     p->centerX = centerX;
     p->centerY = centerY;
 
-    //update viewbox size
-    updateViewbox(p); 
-}
-
-void updateViewbox(Plane *p)
-{
-    int xStart = p->centerX - p->width/2; 
-    int xEnd = p->centerX + p->width/2; 
-    int yStart = p->centerY - p->height/2; 
-    int yEnd = p->centerY + p->height/2; 
-
-    Viewbox* viewbox = p->viewbox; 
-    viewbox->xEnd = xEnd; 
-    viewbox->xStart = xStart; 
-    viewbox->yStart = yStart; 
-    viewbox->yEnd = yEnd; 
+    //Destroy and update window
+    wclear(p->win); 
+    delwin(p->win); 
+    p->win = init_window(p); 
 }
 
 /*
@@ -216,38 +182,7 @@ void draw_parabola(Plane *p)
 {
     //draw parabola red
     attron(COLOR_PAIR(1)); 
-    for(int x = p->viewbox->xStart; x < p->viewbox->xEnd; x++)
-    {
-        int screenY = parabola_screenY(x, p);
 
-        //If transformed y point lies in viewbox
-        if (screenY > p->viewbox->yStart && screenY < p->viewbox->yEnd)
-        {
-            mvaddch(screenY, x, '*' |A_BOLD); 
-        }
-
-        //fill curve between exact y points
-        int nextScreenY = parabola_screenY(x+1, p);
-        for (int y = screenY; y< nextScreenY; y++)
-        {
-            if(y > p-> viewbox->yStart && y < p->viewbox->yEnd)
-            {
-            int inbetweenX_plus, inbetweenX_minus;
-            inbetweenX_plus = round(parabola_screenX_plus(y, p));
-            inbetweenX_minus = round(parabola_screenX_minus(y, p)); 
-
-            mvaddch(y, inbetweenX_plus, '*' |A_BOLD); 
-            /* TODO add and extra '*' based on derivative values 
-            i.e., to the left if derivative is neg, right if positive
-            and only if it is a certain steepness ... i.e., < 1*/
-            mvaddch(y, inbetweenX_plus +1 , '*'|A_BOLD);
-            mvaddch(y, inbetweenX_minus-1, '*'|A_BOLD);
-            mvaddch(y, inbetweenX_minus, '*'|A_BOLD); 
-
-            }
-        }
-
-    }
     attroff(COLOR_PAIR(1));
 }
 

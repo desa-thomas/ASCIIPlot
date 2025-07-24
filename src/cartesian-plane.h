@@ -1,15 +1,26 @@
+#include <ncurses.h>
+
+/*
+Constants
+*/
+//Rate at which to change plane scale when zooming
+#define ZOOMRATE_LOW_LOW 0.01
+#define ZOOMRATE_LOW 0.1
+#define ZOOMRATE_MID 1
+
+#define ZOOMRATE_HIGH 2
+
+//Rate at which to move origin 
+#define MOVESPEED 1
+//Default scale of graphs
+#define DEFAULT_SCALE 1
+
+#define XPADDING 2
+#define YPADDING 10
+
 /*
 Cartesian plane struct prototypes
 */
-
-//Viewbox of plane, values calculated based on width, height and center
-typedef struct
-{
-    int xStart;
-    int xEnd; 
-    int yStart; 
-    int yEnd; 
-} Viewbox; 
 
 //Cartesian plane struct
 typedef struct
@@ -18,12 +29,11 @@ typedef struct
     int width;
     int height;
 
+    WINDOW* win; 
+
     //center of the viewbox on screen
     int centerX;
     int centerY;
-
-    //Viewbox's corners
-    Viewbox* viewbox; 
 
     //Graph scale (i.e., units per '-')
     float scale;
@@ -49,25 +59,6 @@ typedef enum
     RIGHT
 }Direction; 
 
-/*
-Constants
-*/
-
-//Rate at which to change plane scale when zooming
-#define ZOOMRATE_LOW_LOW 0.01
-#define ZOOMRATE_LOW 0.1
-#define ZOOMRATE_MID 1
-
-#define ZOOMRATE_HIGH 2
-
-//Rate at which to move origin 
-#define MOVESPEED 1
-//Default scale of graphs
-#define DEFAULT_SCALE 1
-
-#define XPADDING 5
-#define YPADDING 10
-
 //Transform screen coordinates to plane coordinates
 //Note for the y-axis the distance formula is flipped, this is because
 //y coordinates (in ncurses) are calculated by # of rows from top left
@@ -83,9 +74,6 @@ Constants
 2. evaulate function plane coordinates
 3. transform plane coordinates back to their mapped screen coordinates*/
 
-//get viewbox values based on center and size of box
-Viewbox* getViewbox(int centerX, int centerY, int width, int height);
-
 /*
 Cartesian plane methods
 */
@@ -96,14 +84,20 @@ Create a Cartesian plane. Values are calculated based on current screen size
 Plane* init_plane(); 
 
 /*
+Initialize plane window
+*/
+WINDOW* init_window(Plane* p); 
+
+/*
+Clear plane window
+*/
+void clear_plane(Plane* p); 
+
+/*
 free up pointers
 */
 void free_plane(Plane* p);
 
-/*
-Draw the viewbox
-*/
-void draw_box(Plane* p); 
 /*
 Draw the plane 
 */
@@ -119,14 +113,9 @@ Zoom into graph (i.e., increase or decrease scale by a rate of ZOOMRATE)
 void zoom(Plane* p, Zoom zoom);
 
 /*
-Update center of viewbox, called when screen is resized
+Destroy and update window
 */
 void updateCenter(Plane*p);
-/*
-Update values of viewbox struct, called by updateCenter
-*/
-void updateViewbox(Plane*p); 
-
 
 /*
 Test function, draws a parabola y=x^2
