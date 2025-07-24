@@ -4,8 +4,8 @@
 Constants
 */
 //Rate at which to change plane scale when zooming
-#define ZOOMRATE_LOW_LOW 0.01
-#define ZOOMRATE_LOW 0.1
+#define ZOOMRATE_LOW_LOW 0.01f
+#define ZOOMRATE_LOW 0.1f
 #define ZOOMRATE_MID 1
 
 #define ZOOMRATE_HIGH 2
@@ -62,12 +62,12 @@ typedef enum
 //Transform screen coordinates to plane coordinates
 //Note for the y-axis the distance formula is flipped, this is because
 //y coordinates (in ncurses) are calculated by # of rows from top left
-#define planeY(p, screeny) (p->originY - screenY)*p->scale
-#define planeX(p, screenX) (screenX - p->originX)*p->scale
+#define toPlaneY(p, screenY) (p->originY - screenY)*p->scale
+#define toPlaneX(p, screenX) (screenX - p->originX)*p->scale
 
 //Transform plane X and Y back to scren coordinates
-#define screenY(p, planeY) p->originY - (planeY/p->scale)
-#define screenX(p, planeX) planeX/p->scale + p->originX
+#define toScreenY(p, planeY) (int) round(p->originY - ((float)planeY/p->scale))
+#define toScreenX(p, planeX) (int) round((float)planeX/p->scale + p->originX)
 
 /* To apply function: f(x) you must:
 1. transform screen coordinates to plane coordinates
@@ -123,6 +123,7 @@ Test function, draws a parabola y=x^2
 void draw_parabola(Plane* p);
 
 /*
-DEBUGGING FUNCTION
+DEBUGGING FUNCTIONS
 */
 void write_log(const char* msg, ...);
+void clear_log(); 
