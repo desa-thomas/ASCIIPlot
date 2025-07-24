@@ -3,6 +3,7 @@ Functions for cartesian plane
 */
 
 #include "cartesian-plane.h"
+#include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <ncurses.h>
@@ -37,6 +38,7 @@ Plane* init_plane()
     return p;
 }
 
+/* usage p->win = init_window(p)*/
 WINDOW* init_window(Plane* p)
 {
     WINDOW* win;
@@ -56,9 +58,11 @@ void free_plane(Plane*p)
     free(p);    
 }
 
+/* Clear before redrawing*/
 void draw_plane(Plane*p)
 {
     box(p->win, 0, 0); 
+
     if(p->originX > 1 && p->originX < p->width)
     {  
         for (int y = 1; y < p->height; y++)
@@ -123,19 +127,24 @@ void zoom (Plane* p, Zoom zoom)
                 if(fabs(p->scale -ZOOMRATE_LOW_LOW) > EPSILON){
                     p->scale -= ZOOMRATE_LOW_LOW; }
                 }
-                
           
             break; 
 
         //increase scale when zooming out
         case ZOOMOUT:
-            if (p->scale <= ZOOMRATE_LOW)
-                p->scale += ZOOMRATE_LOW_LOW; 
+            if (p->scale < ZOOMRATE_LOW){
+                //check if something like 0.1 > 0.1 is happening
+                if(fabs(ZOOMRATE_LOW) - p->scale > EPSILON){
+                    p->scale += ZOOMRATE_LOW_LOW; 
+                }
+                else p->scale+= ZOOMRATE_LOW; 
+            }
+                
 
-            else if(p->scale <= ZOOMRATE_MID)
+            else if(p->scale < ZOOMRATE_MID)
                 p->scale += ZOOMRATE_LOW; 
 
-            else if (p->scale <= ZOOMRATE_HIGH)
+            else if (p->scale < ZOOMRATE_HIGH)
                 p->scale += ZOOMRATE_MID;
 
             else
@@ -144,9 +153,9 @@ void zoom (Plane* p, Zoom zoom)
     }
 }
 
+/* Called when screen size changes, destroys and reconstructs window*/
 void updateCenter(Plane *p)
 {
-    
     int max_y, max_x;
     getmaxyx(stdscr, max_y, max_x);
 
@@ -175,15 +184,58 @@ void updateCenter(Plane *p)
 /*
 TESTING FUNCTION AND MACROS FOR DRAWING A PARABOLA
 */
-#define parabola_screenY(screenX, p) screenY(p, pow(planeX(p, screenX), 2))
-#define parabola_screenX_plus(screenY, p) screenX(p, sqrt(planeY(p,screenY)))
-#define parabola_screenX_minus(screenY, p) screenX(p, -sqrt(planeY(p, screenY)))
+#define parabola_screenY(screenX, p) toScreenY(p, pow(toPlaneX(p, screenX), 2))
+#define parabola_screenX_plus(screenY, p) toScreenX(p, sqrt(toPlaneY(p,screenY)))
+#define parabola_screenX_minus(screenY, p) toScreenX(p, -sqrt(toPlaneY(p, screenY)))
 void draw_parabola(Plane *p)
 {
     //draw parabola red
-    attron(COLOR_PAIR(1)); 
+    wattron(p->win, COLOR_PAIR(1));
+    wattron(p->win, A_BOLD);  
 
-    attroff(COLOR_PAIR(1));
+    //Draw y points for each x point
+    for (int screenX = 1; screenX < p->width; screenX++)
+    {
+        int screenY = parabola_screenY(screenX, p);
+
+        if (screenY > 0 && screenY < p->height)
+        {
+            mvwaddch(p->win, screenY, screenX, '*'); 
+        }
+
+        //approximate the points between respective whole valued (x,y) points
+        if (screenX + 1 <= p->width)
+        {
+            int nextScreenY =  parabola_screenY(screenX+1, p);
+        
+
+            //Goint from smaller y to bigger y (screen Y, so going down)
+            for(int y = screenY; y< nextScreenY; y++)
+            {   
+                if (y > 0 && y < p->height)
+                {
+                    int inbetweenx_minus = parabola_screenX_minus(y, p);
+                    mvwaddch(p->win, y, inbetweenx_minus, '*'); 
+                    // mvwaddch(p->win, y, round(inbetweenx_minus -1), '*'); 
+
+                }              
+            }
+            //going from bigger to smaller y (screen coordinates)
+            for(int y = screenY; y > nextScreenY; y--)
+            {
+                if (y > 0 && y < p->height)
+                {
+                    int inbetweenx_plus = parabola_screenX_plus(y, p);
+                    mvwaddch(p->win, y, inbetweenx_plus, '*'); 
+                    // mvwaddch(p->win, y, round(inbetweenx_plus+ 1), '*'); 
+                }
+            }
+        }
+        
+    }
+    
+    wattroff(p->win, COLOR_PAIR(1));
+    wattroff(p->win, A_BOLD); 
 }
 
 void write_log (const char* msg, ...)
@@ -192,7 +244,7 @@ void write_log (const char* msg, ...)
     va_start (args, msg); 
 
     FILE * file;
-    file = fopen("out.log", "w"); 
+    file = fopen("out.log", "a"); 
 
     if (file != NULL)
     {
@@ -203,5 +255,15 @@ void write_log (const char* msg, ...)
     else 
     {
         perror("Failed to open log file"); 
+    }
+}
+void clear_log()
+{
+    FILE * file;
+    file = fopen("out.log", "w");
+    if (file != NULL)
+    {
+        fprintf(file, "--DEBUGGING LOG--\n");
+        fclose(file); 
     }
 }
