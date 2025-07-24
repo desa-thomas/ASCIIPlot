@@ -1,3 +1,5 @@
 objs/*
 main.exe
 out.log
+.obsidian
+todo.md
