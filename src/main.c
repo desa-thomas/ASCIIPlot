@@ -12,7 +12,8 @@ void draw_menu();
 WINDOW* init_menu_win();
 
 int main() {
-
+    clear_log(); //clear debugging log
+    
     //Enable UTF-8 Locale (for title art)
     setlocale(LC_ALL, ""); 
     /* Initialize ncurses */
@@ -46,7 +47,7 @@ int main() {
         /* Draw plane and graph*/
         clear_plane(p); 
         draw_plane(p);
-        // draw_parabola(p); 
+        draw_parabola(p); 
         wrefresh(p->win); 
 
         /* If ctrl-c is pressed, quit*/
