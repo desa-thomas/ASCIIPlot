@@ -3,8 +3,8 @@ Functions for cartesian plane
 */
 
 #include "cartesian-plane.h"
-#include <locale.h>
-#include <stdio.h>
+#include "utilities.h"
+
 #include <stdlib.h>
 #include <ncurses.h>
 #include <math.h>
@@ -236,34 +236,4 @@ void draw_parabola(Plane *p)
     
     wattroff(p->win, COLOR_PAIR(1));
     wattroff(p->win, A_BOLD); 
-}
-
-void write_log (const char* msg, ...)
-{
-    va_list args; 
-    va_start (args, msg); 
-
-    FILE * file;
-    file = fopen("out.log", "a"); 
-
-    if (file != NULL)
-    {
-        vfprintf(file, msg, args);
-        fprintf(file, "\n");
-        fclose(file);
-    }
-    else 
-    {
-        perror("Failed to open log file"); 
-    }
-}
-void clear_log()
-{
-    FILE * file;
-    file = fopen("out.log", "w");
-    if (file != NULL)
-    {
-        fprintf(file, "--DEBUGGING LOG--\n");
-        fclose(file); 
-    }
 }

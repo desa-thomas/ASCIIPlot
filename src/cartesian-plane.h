@@ -66,8 +66,8 @@ typedef enum
 #define toPlaneX(p, screenX) (screenX - p->originX)*p->scale
 
 //Transform plane X and Y back to scren coordinates
-#define toScreenY(p, planeY) (int) round(p->originY - ((float)planeY/p->scale))
-#define toScreenX(p, planeX) (int) round((float)planeX/p->scale + p->originX)
+#define toScreenY(p, planeY) (int) round(p->originY - ((double)planeY/p->scale))
+#define toScreenX(p, planeX) (int) round((double)planeX/p->scale + p->originX)
 
 /* To apply function: f(x) you must:
 1. transform screen coordinates to plane coordinates
@@ -121,9 +121,3 @@ void updateCenter(Plane*p);
 Test function, draws a parabola y=x^2
 */
 void draw_parabola(Plane* p);
-
-/*
-DEBUGGING FUNCTIONS
-*/
-void write_log(const char* msg, ...);
-void clear_log(); 
