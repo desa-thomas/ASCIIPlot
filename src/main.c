@@ -5,8 +5,10 @@ Desmos in your terminal, you absolutely don't need it
 #include <ncurses.h>
 #include <stdbool.h>
 #include <string.h>
-#include "cartesian-plane.h"
 #include <locale.h>
+
+#include "cartesian-plane.h"
+#include "utilities.h"
 
 void draw_menu(); 
 WINDOW* init_menu_win();
