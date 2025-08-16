@@ -22,7 +22,7 @@ FOX *initfunc(char *expr) {
   FOX *fox = NULL;
 
   int buffersize =
-      strlen(expr) * 2; // double because the is max size the postfix string can
+      strlen(expr) * 3; // triple for safety. 
 
   // initialize the string to all zeros to avoid tokenizaiton errors
   char postfix[buffersize];
@@ -39,7 +39,7 @@ FOX *initfunc(char *expr) {
     for clariy
     */
     
-    char cpy[strlen(postfix)]; 
+    char cpy[strlen(postfix) + 1]; 
     memset(cpy, 0, sizeof(cpy));
     strcpy(cpy, postfix); 
 
@@ -424,7 +424,6 @@ int infix_to_postfix(char *expr, char *postfix, int buffersize) {
         i++;
         ch = local_expr[i];
       }
-      printf("CurrStr (1): %s, i:%d, local_expr:%s\n", currStr, i, local_expr);
     }
 
     // Parse number or function or constant
@@ -500,7 +499,7 @@ int infix_to_postfix(char *expr, char *postfix, int buffersize) {
         if (isFunc)
           push(stack, currStr);
         else {
-          char tmp[2];
+          char tmp[2] = {0};
           tmp[0] = ch;
           tmp[1] = STREND;
           push(stack, tmp);
@@ -654,6 +653,7 @@ int infix_to_postfix(char *expr, char *postfix, int buffersize) {
       errcode = 1;
       break;
     }
+
     i++;
   }
 
