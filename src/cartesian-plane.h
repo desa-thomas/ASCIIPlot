@@ -1,4 +1,5 @@
 #include <ncurses.h>
+#include "fxp.h"
 
 /*
 Constants
@@ -13,7 +14,7 @@ Constants
 //Rate at which to move origin 
 #define MOVESPEED 1
 //Default scale of graphs
-#define DEFAULT_SCALE 1
+#define DEFAULT_SCALE 0.1
 
 #define XPADDING 2
 #define YPADDING 10
@@ -36,7 +37,7 @@ typedef struct
     int centerY;
 
     //Graph scale (i.e., units per '-')
-    float scale;
+    double scale;
 
     //coordinates of the graphs origin.
     //This differs from the center of the viewbox and is used to move around the graph
@@ -62,12 +63,12 @@ typedef enum
 //Transform screen coordinates to plane coordinates
 //Note for the y-axis the distance formula is flipped, this is because
 //y coordinates (in ncurses) are calculated by # of rows from top left
-#define toPlaneY(p, screenY) (p->originY - screenY)*p->scale
-#define toPlaneX(p, screenX) (screenX - p->originX)*p->scale
+#define toPlaneY(p, screenY) ((p->originY - screenY)*p->scale)
+#define toPlaneX(p, screenX) ((screenX - p->originX)*p->scale)
 
 //Transform plane X and Y back to scren coordinates
-#define toScreenY(p, planeY) (int) round(p->originY - ((double)planeY/p->scale))
-#define toScreenX(p, planeX) (int) round((double)planeX/p->scale + p->originX)
+#define toScreenY(p, planeY) (int) (round(p->originY - ((double)planeY/p->scale)))
+#define toScreenX(p, planeX) (int) (round((double)planeX/p->scale + p->originX)) 
 
 /* To apply function: f(x) you must:
 1. transform screen coordinates to plane coordinates
@@ -121,3 +122,8 @@ void updateCenter(Plane*p);
 Test function, draws a parabola y=x^2
 */
 void draw_parabola(Plane* p);
+
+/*
+ Graph a function on plane
+ */
+void graph_function(Plane* p, FOX* f); 
