@@ -22,3 +22,7 @@ You need the ncurses library and Make installed.
 - Enter key on selected function to graph it. 
 - Arrow keys to move around graph. 
 - pg up and pg down to zoom in and out of the plane. 
+
+## Gallery
+
+[example 1](screenshots/ex1.png)
