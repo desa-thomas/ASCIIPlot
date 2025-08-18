@@ -179,6 +179,7 @@ void refresh_plane() {
   /* Draw plane and graphs*/
   clear_plane(plane);
   draw_plane(plane);
+  draw_functions(); 
   wrefresh(plane->win);
 }
 
@@ -273,5 +274,16 @@ void handle_input(const int ch) {
     }
 
     refresh_graph = False;
+  }
+}
+
+void draw_functions(){
+
+  for(int i = 0; i < MAX_FUNCTIONS; i ++){
+    if(function_objs[i]){
+      wattron(plane->win, COLOR_PAIR(i+1)); 
+      graph_function(plane, function_objs[i]); 
+      wattroff(plane->win, COLOR_PAIR(i+1)); 
+    }
   }
 }

@@ -223,9 +223,6 @@ void draw_parabola(Plane *p) {
 
 void graph_function(Plane *p, FOX *f) {
 
-  wattron(p->win, COLOR_PAIR(1));
-  wattron(p->win, A_BOLD);
-
   double prev_x = NAN;
   double prev_y = NAN;
   int prev_screen_y = 0;
@@ -301,6 +298,4 @@ void graph_function(Plane *p, FOX *f) {
     }
   }
 
-  wattroff(p->win, COLOR_PAIR(1));
-  wattron(p->win, A_BOLD);
 }
