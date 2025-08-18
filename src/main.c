@@ -21,6 +21,7 @@ void write_char_to_input(char ch);
 void del_char();
 void refresh_plane();
 void handle_input(int ch);
+void draw_functions(); 
 
 WINDOW *input_windows[MAX_FUNCTIONS] = {NULL};
 char *func_names[MAX_FUNCTIONS] = {"f(x)", "g(x)", "h(x)"};
@@ -78,6 +79,10 @@ int main() {
 
     if (refresh_inputs)
       draw_input_windows();
+
+    int x, y;
+    getyx(input_windows[current_function], y, x);
+    wmove(input_windows[current_function], y, x);
 
     wrefresh(input_windows[current_function]);
     refresh_inputs = False;
@@ -214,6 +219,17 @@ void handle_input(const int ch) {
     refresh_graph = False;
   }
 
+  // enter key
+  else if (ch == KEY_ENTER || ch == '\n') {
+    FOX * f = initfunc(function_strings[current_function]); 
+    function_objs[current_function] = f; 
+    if(!f){
+      wattron(input_windows[current_function], COLOR_PAIR(3)); 
+      mvwprintw(input_windows[current_function], 0, 12 + function_strings_lens[current_function], "Error Parsing function!");
+      wattroff(input_windows[current_function], COLOR_PAIR(3)); 
+    }
+  }
+
   // listen for alt key
   else if (ch == 27) {
     const int next = getch();
@@ -228,10 +244,13 @@ void handle_input(const int ch) {
     case '3':
       current_function = HX;
       break;
+
+    case 'j':
     case 'n':
       if (current_function < HX)
         current_function += 1;
       break;
+    case 'k':
     case 'N':
       if (current_function > FX)
         current_function -= 1;
@@ -240,6 +259,7 @@ void handle_input(const int ch) {
     refresh_inputs = True;
   }
 
+  // normal input
   else {
     // check for overflow
     if (function_strings_lens[current_function] < MAX_FUNCTION_STRING_LEN) {
