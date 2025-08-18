@@ -25,4 +25,4 @@ You need the ncurses library and Make installed.
 
 ## Gallery
 
-[example 1](screenshots/ex1.png)
+![example 1](screenshots/ex1.png)
