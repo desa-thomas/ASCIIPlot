@@ -55,6 +55,7 @@ void free_plane(Plane *p) {
 
 /* Clear before redrawing*/
 void draw_plane(Plane *p) {
+const double epsilon = 1e-6;          // tolerance threshold
   box(p->win, 0, 0);
 
   // If y axis is visible
@@ -73,7 +74,6 @@ void draw_plane(Plane *p) {
     for (int x = 1; x < p->width; x++) {
       if (x != p->originX) {
         const double planex = toPlaneX(p, x);
-        const double epsilon = 1e-6;          // tolerance threshold
         double mod = fmod(fabs(planex), 2.0); // remainder when divided by 2\fd
                                               //
         if (fabs(mod) < epsilon || fabs(mod - 2.0) < epsilon) {
@@ -254,39 +254,41 @@ void graph_function(Plane *p, FOX *f) {
       const int screenY = toScreenY(p, y);
 
       // if y coord is in window
-      if ((screenY > 0 && screenY < p->height) || (prev_screen_y > 0 && prev_screen_y < p->height)) {
+      if ((screenY > 0 && screenY < p->height) ||
+          (prev_screen_y > 0 && prev_screen_y < p->height)) {
 
-        if(screenY > 0 && screenY < p->height)
-        mvwaddch(p->win, screenY, screenX, '*');
+        if (screenY > 0 && screenY < p->height)
+          mvwaddch(p->win, screenY, screenX, '*');
 
-      // interpolate y values between two subsequent screenX values
-      if (!isnan(prev_x) && !wasinf) {
-        for (int inbetweenScreenY = prev_screen_y + 1;
-             inbetweenScreenY < screenY; inbetweenScreenY++) {
-          const double inbetweenPlaneY = toPlaneY(p, inbetweenScreenY);
-          const double interpolatedPlaneX =
-              linear_interpolation_x(prev_x, prev_y, x, y, inbetweenPlaneY);
-          const int interpolatedScreenX = toScreenX(p, interpolatedPlaneX);
+        // interpolate y values between two subsequent screenX values
+        if (!isnan(prev_x) && !wasinf) {
+          for (int inbetweenScreenY = prev_screen_y + 1;
+               inbetweenScreenY < screenY; inbetweenScreenY++) {
+            const double inbetweenPlaneY = toPlaneY(p, inbetweenScreenY);
+            const double interpolatedPlaneX =
+                linear_interpolation_x(prev_x, prev_y, x, y, inbetweenPlaneY);
+            const int interpolatedScreenX = toScreenX(p, interpolatedPlaneX);
 
-          if (inbetweenScreenY > 0 && inbetweenScreenY < p->height) {
+            if (inbetweenScreenY > 0 && inbetweenScreenY < p->height) {
 
-            mvwaddch(p->win, inbetweenScreenY, interpolatedScreenX, '*');
+              mvwaddch(p->win, inbetweenScreenY, interpolatedScreenX, '*');
+            }
+          }
+          for (int inbetweenScreenY = prev_screen_y - 1;
+               inbetweenScreenY > screenY; inbetweenScreenY--) {
+
+            const double inbetweenPlaneY = toPlaneY(p, inbetweenScreenY);
+            const double interpolatedPlaneX =
+                linear_interpolation_x(prev_x, prev_y, x, y, inbetweenPlaneY);
+            const int interpolatedScreenX = toScreenX(p, interpolatedPlaneX);
+
+            if (inbetweenScreenY > 0 && inbetweenScreenY < p->height) {
+
+              mvwaddch(p->win, inbetweenScreenY, interpolatedScreenX, '*');
+            }
           }
         }
-        for (int inbetweenScreenY = prev_screen_y - 1;
-             inbetweenScreenY > screenY; inbetweenScreenY--) {
-
-          const double inbetweenPlaneY = toPlaneY(p, inbetweenScreenY);
-          const double interpolatedPlaneX =
-              linear_interpolation_x(prev_x, prev_y, x, y, inbetweenPlaneY);
-          const int interpolatedScreenX = toScreenX(p, interpolatedPlaneX);
-
-          if (inbetweenScreenY > 0 && inbetweenScreenY < p->height) {
-
-            mvwaddch(p->win, inbetweenScreenY, interpolatedScreenX, '*');
-          }
-        }
-      }}
+      }
       if (wasinf == 1) {
         prev_x = NAN;
         prev_y = NAN;
