@@ -73,13 +73,12 @@ void draw_plane(Plane *p) {
     for (int x = 1; x < p->width; x++) {
       if (x != p->originX) {
         const double planex = toPlaneX(p, x);
-        const double epsilon = 1e-6; // tolerance threshold
+        const double epsilon = 1e-6;          // tolerance threshold
         double mod = fmod(fabs(planex), 2.0); // remainder when divided by 2\fd
-                                        //
+                                              //
         if (fabs(mod) < epsilon || fabs(mod - 2.0) < epsilon) {
           mvwaddch(p->win, p->originY, x, '|');
-        }
-        else
+        } else
           mvwaddch(p->win, p->originY, x, '-');
       }
     }
@@ -110,21 +109,18 @@ void zoom(Plane *p, Zoom zoom) {
   switch (zoom) {
   // decrease scale when zooming in
   case ZOOMIN:
-    if (p->scale > 10)
+    if (p->scale > 10 && !double_equal(p->scale, 10))
       p->scale -= ZOOMRATE_HIGH;
 
-    else if (p->scale > ZOOMRATE_MID)
+    else if (p->scale > ZOOMRATE_MID && !double_equal(p->scale, ZOOMRATE_MID))
       p->scale -= ZOOMRATE_MID;
 
-    else if (p->scale > ZOOMRATE_LOW)
+    else if (p->scale > ZOOMRATE_LOW && !double_equal(p->scale, ZOOMRATE_LOW))
       p->scale -= ZOOMRATE_LOW;
 
-    else if (p->scale > ZOOMRATE_LOW_LOW) {
-      // Bug fix: 0.01 > 0.01 would be wrongly evaluated, add tolerance
-      if (fabs(p->scale - ZOOMRATE_LOW_LOW) > EPSILON) {
-        p->scale -= ZOOMRATE_LOW_LOW;
-      }
-    }
+    else if (p->scale > ZOOMRATE_LOW_LOW &&
+             !double_equal(p->scale, ZOOMRATE_LOW_LOW))
+      p->scale -= ZOOMRATE_LOW_LOW;
 
     break;
 
@@ -255,18 +251,15 @@ void graph_function(Plane *p, FOX *f) {
         wasinf = False;
       }
 
-      write_log("(%.2f, %2f, wasinf=%d, prevx= %.2f, prevy= %.2f)", x, y,
-                wasinf, prev_x, prev_y);
-      // write_log("f(%.2f) = %.2f", x, y);
       const int screenY = toScreenY(p, y);
 
       // if y coord is in window
-      if (screenY > 0 && screenY < p->height) {
+      if ((screenY > 0 && screenY < p->height)) {
         mvwaddch(p->win, screenY, screenX, '*');
       }
 
       // interpolate y values between two subsequent screenX values
-      if (prev_x != NAN && !wasinf) {
+      if (!isnan(prev_x) && !wasinf) {
         for (int inbetweenScreenY = prev_screen_y + 1;
              inbetweenScreenY < screenY; inbetweenScreenY++) {
           const double inbetweenPlaneY = toPlaneY(p, inbetweenScreenY);
@@ -281,6 +274,7 @@ void graph_function(Plane *p, FOX *f) {
         }
         for (int inbetweenScreenY = prev_screen_y - 1;
              inbetweenScreenY > screenY; inbetweenScreenY--) {
+
           const double inbetweenPlaneY = toPlaneY(p, inbetweenScreenY);
           const double interpolatedPlaneX =
               linear_interpolation_x(prev_x, prev_y, x, y, inbetweenPlaneY);

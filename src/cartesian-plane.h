@@ -11,11 +11,11 @@ Constants
 
 #define ZOOMRATE_HIGH 2
 
-//Rate at which to move origin 
-#define MOVESPEED 1
 //Default scale of graphs
 #define DEFAULT_SCALE 0.1
 
+//Rate at which to move origin 
+#define MOVESPEED 1
 #define XPADDING 2
 #define YPADDING 10
 
