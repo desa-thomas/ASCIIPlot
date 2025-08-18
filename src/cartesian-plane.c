@@ -254,9 +254,10 @@ void graph_function(Plane *p, FOX *f) {
       const int screenY = toScreenY(p, y);
 
       // if y coord is in window
-      if ((screenY > 0 && screenY < p->height)) {
+      if ((screenY > 0 && screenY < p->height) || (prev_screen_y > 0 && prev_screen_y < p->height)) {
+
+        if(screenY > 0 && screenY < p->height)
         mvwaddch(p->win, screenY, screenX, '*');
-      }
 
       // interpolate y values between two subsequent screenX values
       if (!isnan(prev_x) && !wasinf) {
@@ -285,7 +286,7 @@ void graph_function(Plane *p, FOX *f) {
             mvwaddch(p->win, inbetweenScreenY, interpolatedScreenX, '*');
           }
         }
-      }
+      }}
       if (wasinf == 1) {
         prev_x = NAN;
         prev_y = NAN;

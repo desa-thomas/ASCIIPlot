@@ -752,7 +752,7 @@ int cmpopr(char opr1, char opr2) {
 
 /* MISC MATH FUNCTIONS */
 Bool double_equal(double a, double b) {
-  double epsilon = 1e-9;
+  double epsilon = 1e-7;
   return fabs(a - b) < epsilon;
 }
 
