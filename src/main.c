@@ -216,6 +216,7 @@ void handle_input(const int ch) {
         const int endpos = function_strings_lens[current_function];
         function_strings[current_function][endpos] = '\0';
       }
+      refresh_inputs = True; 
     }
     refresh_graph = False;
   }
