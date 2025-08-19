@@ -21,7 +21,7 @@ void write_char_to_input(char ch);
 void del_char();
 void refresh_plane();
 void handle_input(int ch);
-void draw_functions(); 
+void draw_functions();
 
 WINDOW *input_windows[MAX_FUNCTIONS] = {NULL};
 char *func_names[MAX_FUNCTIONS] = {"f(x)", "g(x)", "h(x)"};
@@ -29,6 +29,8 @@ FOX *function_objs[MAX_FUNCTIONS] = {NULL};
 
 char function_strings[MAX_FUNCTIONS][MAX_FUNCTION_STRING_LEN] = {0};
 int function_strings_lens[MAX_FUNCTIONS] = {0};
+
+int cursor_pos[MAX_FUNCTIONS] = {0};
 
 INPUT_FUNCTION current_function = FX;
 
@@ -171,6 +173,14 @@ void draw_input_windows() {
     wattroff(input_windows[i], COLOR_PAIR(i + 1));
 
     mvwprintw(input_windows[i], 0, 11, "%s", function_strings[i]);
+
+    // draw cursor after drawing function
+    if (i == (int)current_function) {
+      wattron(input_windows[i], COLOR_PAIR(i + 1));
+      const int x = 11 + cursor_pos[current_function];
+      mvwaddch(input_windows[current_function], 0, x, '_');
+      wattroff(input_windows[i], COLOR_PAIR(i + 1));
+    }
     wrefresh(input_windows[i]);
   }
 }
@@ -179,7 +189,7 @@ void refresh_plane() {
   /* Draw plane and graphs*/
   clear_plane(plane);
   draw_plane(plane);
-  draw_functions(); 
+  draw_functions();
   wrefresh(plane->win);
 }
 
@@ -203,32 +213,40 @@ void handle_input(const int ch) {
     zoom(plane, ZOOMIN);
 
   else if (ch == KEY_BACKSPACE) {
-    int x, y;
-    getyx(input_windows[current_function], y, x);
 
-    // cursor is after 'f(x) = '
+    const int x = getcurx(input_windows[0]);
     if (x > 11) {
-      wmove(input_windows[current_function], y, x - 1);
+      wmove(input_windows[current_function], 0,
+            cursor_pos[current_function] + 11 - 1);
       wdelch(input_windows[current_function]);
 
+      // update string buffer
       if (function_strings_lens[current_function] > 0) {
+
+        if (cursor_pos[current_function] ==
+            function_strings_lens[current_function])
+          cursor_pos[current_function] -= 1;
+
         function_strings_lens[current_function] -= 1;
+
         const int endpos = function_strings_lens[current_function];
         function_strings[current_function][endpos] = '\0';
       }
-      refresh_inputs = True; 
+      refresh_inputs = True;
     }
     refresh_graph = False;
   }
 
   // enter key
   else if (ch == KEY_ENTER || ch == '\n') {
-    FOX * f = initfunc(function_strings[current_function]); 
-    function_objs[current_function] = f; 
-    if(!f){
-      wattron(input_windows[current_function], COLOR_PAIR(3)); 
-      mvwprintw(input_windows[current_function], 0, 12 + function_strings_lens[current_function], "Error Parsing function!");
-      wattroff(input_windows[current_function], COLOR_PAIR(3)); 
+    FOX *f = initfunc(function_strings[current_function]);
+    function_objs[current_function] = f;
+    if (!f) {
+      wattron(input_windows[current_function], COLOR_PAIR(3));
+      mvwprintw(input_windows[current_function], 0,
+                12 + function_strings_lens[current_function],
+                "Error Parsing function!");
+      wattroff(input_windows[current_function], COLOR_PAIR(3));
     }
   }
 
@@ -257,6 +275,16 @@ void handle_input(const int ch) {
       if (current_function > FX)
         current_function -= 1;
       break;
+
+    case 'h':
+      if (cursor_pos[current_function] > 0)
+        cursor_pos[current_function] -= 1;
+      break;
+
+    case 'l':
+      if (cursor_pos[current_function] <
+          function_strings_lens[current_function])
+        cursor_pos[current_function] += 1;
     }
     refresh_inputs = True;
   }
@@ -265,26 +293,36 @@ void handle_input(const int ch) {
   else {
     // check for overflow
     if (function_strings_lens[current_function] < MAX_FUNCTION_STRING_LEN) {
-      waddch(input_windows[current_function], ch);
-      // update buffer
-      function_strings_lens[current_function] += 1;
-      const int endpos = function_strings_lens[current_function];
 
-      function_strings[current_function][endpos - 1] = ch;
-      function_strings[current_function][endpos] = '\0';
+      mvwaddch(input_windows[current_function], 0, cursor_pos[current_function],
+               ch);
+
+      if (cursor_pos[current_function] ==
+          function_strings_lens[current_function]) {
+        // update string buffer
+        function_strings_lens[current_function] += 1;
+        const int endpos = function_strings_lens[current_function];
+
+        function_strings[current_function][endpos - 1] = ch;
+        function_strings[current_function][endpos] = '\0';
+      } else {
+        function_strings[current_function][cursor_pos[current_function]] = ch;
+      }
+      cursor_pos[current_function] += 1;
     }
+    refresh_inputs = True;
 
     refresh_graph = False;
   }
 }
 
-void draw_functions(){
+void draw_functions() {
 
-  for(int i = 0; i < MAX_FUNCTIONS; i ++){
-    if(function_objs[i]){
-      wattron(plane->win, COLOR_PAIR(i+1)); 
-      graph_function(plane, function_objs[i]); 
-      wattroff(plane->win, COLOR_PAIR(i+1)); 
+  for (int i = 0; i < MAX_FUNCTIONS; i++) {
+    if (function_objs[i]) {
+      wattron(plane->win, COLOR_PAIR(i + 1));
+      graph_function(plane, function_objs[i]);
+      wattroff(plane->win, COLOR_PAIR(i + 1));
     }
   }
 }

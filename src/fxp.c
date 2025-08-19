@@ -9,20 +9,21 @@ double cot(double x) { return 1 / tan(x); }
 double csc(double x) { return 1 / sin(x); }
 double sec(double x) { return 1 / cos(x); }
 const function_entry func_mappings[] = {
-    {"sin", sin}, {"cos", cos},   {"tan", tan}, {"csc", csc}, {"sec", sec},
-    {"cot", cot}, {"sqrt", sqrt}, {"ln", log},  {"exp", exp},
-};
+    {"sin", sin},   {"cos", cos},     {"tan", tan},     {"csc", csc},
+    {"sec", sec},   {"cot", cot},     {"sqrt", sqrt},   {"ln", log},
+    {"exp", exp},   {"arctan", atan}, {"arccos", acos}, {"arcsin", asin},
+    {"asin", asin}, {"atan", atan},   {"acos", acos}};
 
-const char *valid_functions[] = {"cos", "sin", "tan", "sec", "csc",
-                                 "cot", "ln",  "exp", "sqrt"};
+const char *valid_functions[] = {"cos",    "sin",    "tan",  "sec",  "csc",
+                                 "cot",    "ln",     "exp",  "sqrt", "arctan",
+                                 "arcsin", "arccos", "acos", "asin", "atan"};
 const char *valid_constants[] = {"Pi", "pi", "pi"};
 
 /*----f o x METHODS----*/
 FOX *initfunc(char *expr) {
   FOX *fox = NULL;
 
-  int buffersize =
-      strlen(expr) * 3; // triple for safety. 
+  int buffersize = strlen(expr) * 3; // triple for safety.
 
   // initialize the string to all zeros to avoid tokenizaiton errors
   char postfix[buffersize];
@@ -38,12 +39,12 @@ FOX *initfunc(char *expr) {
     that function unnecessarily and wouldn't make much sense. Small trade off
     for clariy
     */
-    
-    char cpy[strlen(postfix) + 1]; 
-    memset(cpy, 0, sizeof(cpy));
-    strcpy(cpy, postfix); 
 
-    char *token = strtok(cpy, " "); //tokenize copy of postfix
+    char cpy[strlen(postfix) + 1];
+    memset(cpy, 0, sizeof(cpy));
+    strcpy(cpy, postfix);
+
+    char *token = strtok(cpy, " "); // tokenize copy of postfix
 
     while (token != NULL) {
 
@@ -65,9 +66,9 @@ FOX *initfunc(char *expr) {
         fox = malloc(sizeof(FOX));
 
       else
-        return NULL; 
-     
-      if(fox)
+        return NULL;
+
+      if (fox)
         fox->exprTree = root;
     }
 
@@ -131,8 +132,7 @@ NODE *create_expression_tree(char *postfix) {
 
     token = strtok(NULL, " ");
   }
-  
-  
+
   NODE *root = pop(stack);
   freeStack(stack);
 
