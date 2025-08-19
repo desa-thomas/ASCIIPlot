@@ -53,6 +53,7 @@ int main() {
   start_color();        // enable colors
   // nodelay(stdscr, true); //make getch non-blocking
 
+  use_default_colors(); 
   /* Initialize colors */
   initialize_colors();
 
