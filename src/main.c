@@ -242,7 +242,7 @@ void handle_input(const int ch) {
   else if (ch == KEY_ENTER || ch == '\n') {
     FOX *f = initfunc(function_strings[current_function]);
     function_objs[current_function] = f;
-    if (!f) {
+    if (!f && function_strings_lens[current_function] > 0) {
       wattron(input_windows[current_function], COLOR_PAIR(3));
       mvwprintw(input_windows[current_function], 0,
                 12 + function_strings_lens[current_function],

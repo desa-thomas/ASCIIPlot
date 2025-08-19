@@ -49,7 +49,7 @@ FOX *initfunc(char *expr) {
     while (token != NULL) {
 
       if (!isdigit(token[0]) && !isStrOpr(token) && !(isOperator(token[0])) &&
-          (token[0] != 'x' && token[0] != 'e')) {
+          (token[0] != 'x' && token[0] != 'e') && (!isConstant(token)) )  {
 
         printf("ERR: FOX only accepts 1 dependent variable of x: invalid char\n"
                "'%c' in expression: %s",
@@ -176,6 +176,9 @@ double evaluate_tree(NODE *node, const double x) {
 
     else if (val[0] == 'e')
       return exp(1);
+
+    else if (isConstant(val))
+      return M_PI; 
 
     Bool stropr = isStrOpr(node->val);
 
