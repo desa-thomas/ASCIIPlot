@@ -2,8 +2,9 @@
 ░█▀█░▀▀█░█░░░░█░░░█░░█▀▀░█░░░█░█░░█░
 ░▀░▀░▀▀▀░▀▀▀░▀▀▀░▀▀▀░▀░░░▀▀▀░▀▀▀░░▀░
 
-Graphing calculator for your terminal!
-
+```
+A graphing calculator for your terminal!
+```
 ![Example screenshot](screenshots/shifted_sin.png)
 
 ## About
