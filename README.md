@@ -7,7 +7,7 @@ Graphing calculator for your terminal!
 ![Example screenshot](screenshots/shifted_sin.png)
 
 ## About
-ASCII Plot is a terminal-based function plotter built in C using ncurses. It features a custom-built mathematical expression parser designed specifically for this project. The parser constructs an expression tree to efficiently evaluate functions at any given x-coordinate.
+ASCII Plot is a terminal-based function plotter built in C using ncurses. It features a [math expression parser](https://github.com/desa-thomas/fxp) I made for this project. The parser constructs an expression tree to efficiently evaluate functions at any given x-coordinate.
 
 To render a graph, the program iterates through the visible x-values in the terminal window, evaluates the function at each point, and plots the corresponding y-values. Since the terminal is limited to displaying ASCII characters in a grid, the graph simulates curves by linearly interpolating between adjacent points to create a smoother visual approximation.
 
